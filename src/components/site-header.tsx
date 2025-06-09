@@ -1,22 +1,15 @@
-"use client"
+"use client";
 
-import { SidebarIcon } from "lucide-react"
+import { SidebarIcon } from "lucide-react";
 
-import { SearchForm } from "@/components/search-form"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { useSidebar } from "@/components/ui/sidebar"
+import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useSidebar } from "@/components/ui/sidebar";
+import ChangeThemeBtn from "./basic/ChangeThemeBtn";
 
 export function SiteHeader() {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar } = useSidebar();
 
   return (
     <header className="bg-background sticky top-0 z-50 flex w-full items-center border-b">
@@ -31,7 +24,7 @@ export function SiteHeader() {
         </Button>
         <Separator orientation="vertical" className="mr-2 h-4" />
         <Breadcrumb className="hidden sm:block">
-          <BreadcrumbList>
+          {/* <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="#">
                 Building Your Application
@@ -41,10 +34,13 @@ export function SiteHeader() {
             <BreadcrumbItem>
               <BreadcrumbPage>Data Fetching</BreadcrumbPage>
             </BreadcrumbItem>
-          </BreadcrumbList>
+          </BreadcrumbList> */}
         </Breadcrumb>
-        <SearchForm className="w-full sm:ml-auto sm:w-auto" />
+        {/* <SearchForm className="w-full sm:ml-auto sm:w-auto" /> */}
+        <div className="w-full sm:ml-auto sm:w-auto mr-5">
+          <ChangeThemeBtn />
+        </div>
       </div>
     </header>
-  )
+  );
 }
