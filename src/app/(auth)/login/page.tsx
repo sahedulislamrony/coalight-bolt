@@ -104,7 +104,7 @@ function MainForm() {
       dispatch(
         setUser({
           user: {
-            name: userInfo.firstName + " " + userInfo.lastName,
+            name: userInfo.name,
             email: userInfo.email,
           },
           isAccountEnabled: userInfo.isAccountEnabled,

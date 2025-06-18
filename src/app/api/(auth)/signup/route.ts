@@ -29,8 +29,8 @@ export async function POST(request: Request) {
 
   try {
     // names
-    const firstName = name.split(" ")[0];
-    const lastName = name.substring(name.indexOf(" ") + 1) || "";
+    const [firstName, ...restName] = name.split(" ");
+    const lastName = restName.join(" ") || "";
     const apiData = {
       firstName,
       lastName,
@@ -45,10 +45,15 @@ export async function POST(request: Request) {
       },
     });
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage =
+        response.status == 409
+          ? "Email already exists"
+          : errorData?.message || "Failed to signup";
       return NextResponse.json(
         {
           success: false,
-          message: "Failed to signup",
+          message: errorMessage,
         },
         { status: response.status }
       );
@@ -56,12 +61,21 @@ export async function POST(request: Request) {
 
     // successful signup
     const { jwt: token, refreshToken, userInfo } = await response.json();
+    const {
+      firstName: userFirstName,
+      lastName: userLastName,
+      ...rest
+    } = userInfo;
+    const userInfoWithName = {
+      ...rest,
+      name: `${userFirstName} ${userLastName ?? ""}`.trim(),
+    };
 
     const nextResponse = NextResponse.json(
       {
         success: true,
         message: "Account created successfully!",
-        userInfo,
+        userInfo: userInfoWithName,
       },
       { status: 200 }
     );

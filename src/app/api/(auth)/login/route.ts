@@ -41,14 +41,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // successful signup
+    // successful signin
     const { jwt: token, refreshToken, userInfo } = await response.json();
+    const { firstName, lastName, ...restUserInfo } = userInfo;
+    const userInfoWithName = {
+      ...restUserInfo,
+      name: `${firstName} ${lastName}`,
+    };
 
     const nextResponse = NextResponse.json(
       {
         success: true,
         message: "Login successfully!",
-        userInfo,
+        userInfo: userInfoWithName,
       },
       { status: 200 }
     );
