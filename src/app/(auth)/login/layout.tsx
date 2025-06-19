@@ -5,8 +5,8 @@ export default function layout({ children }: { children: ReactNode }) {
   return (
     <>
       <Navbar />
-      <div className="flex  w-full items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm">{children}</div>
+      <div className="flex  min-h-screen  w-full items-start justify-start p-6 md:p-10">
+        {children}
       </div>
     </>
   );

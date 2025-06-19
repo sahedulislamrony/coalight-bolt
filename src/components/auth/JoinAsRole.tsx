@@ -1,50 +1,47 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import WithGoogleBtn from "@/components/form/WithGoogleBtn";
-
-import { ChangeEvent, useState } from "react";
-import { formStatus, loginFormData } from "@/types/auth";
+import { ChangeEvent, useEffect, useState } from "react";
+import { formStatus, type signUpFormData } from "@/types/auth";
 import { toast } from "sonner";
 import { delay } from "@/lib/delay";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/redux/hooks";
 import { setUser } from "@/redux/features/auth/authSlice";
-
 import InputField from "@/components/form/InputField";
 import ORLine from "@/components/form/ORLine";
-import FormHeader from "@/components/form/FormHeader";
 import FooterTxt from "@/components/form/FooterTxt";
-import SubmitBtn from "@/components/form/SubmitBtn";
-
-export default function LoginPage() {
+import WithGoogleBtn from "@/components/form/WithGoogleBtn";
+import FormHeader from "@/components/form/FormHeader";
+import SubmitBtn from "../form/SubmitBtn";
+export default function SignupPage({ role }: { role?: "student" | "teacher" }) {
   return (
-    <div className="mx-auto max-w-md w-full mt-25 ">
-      <Card className=" shadow-sm  rounded-sm bg-transparent border-2 ">
-        <FormHeader
-          title="Welcome"
-          subTitle="Enter your credentials to continue"
-        />
+    <div className="mx-auto max-w-md  mt-28 min-h-screen px-4 md:px-0">
+      <Card className="shadow-sm rounded-sm  bg-transparent border-2">
+        <FormHeader title="Join Us" subTitle="Enter your details to sign up" />
 
         <CardContent>
-          <MainForm />
+          <WithGoogleBtn />
 
           <ORLine />
-
-          <WithGoogleBtn />
-          <FooterTxt isFromLogin />
+          <MainForm role={role} />
+          <FooterTxt isFromLogin={false} />
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function MainForm() {
+function MainForm({ role }: { role?: "student" | "teacher" }) {
+  const btnText =
+    role === "teacher" ? "Sign up as Teacher" : "Sign up as Student";
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [formData, setFormData] = useState<loginFormData>({
+  const [formData, setFormData] = useState<signUpFormData>({
+    name: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [status, setStatus] = useState<formStatus>("IDLE");
 
@@ -59,16 +56,20 @@ function MainForm() {
 
   const requestFormReset = () => {
     setFormData({
+      name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     });
     setStatus("IDLE");
   };
 
-  const trimeData = (data: loginFormData): loginFormData => {
+  const trimeData = (data: signUpFormData): signUpFormData => {
     return {
+      name: data.name?.trim(),
       email: data.email?.trim(),
       password: data.password?.trim(),
+      confirmPassword: data.confirmPassword?.trim(),
     };
   };
 
@@ -80,7 +81,7 @@ function MainForm() {
     try {
       setStatus("LOADING");
       const [response] = await Promise.all([
-        fetch("/api/login", {
+        fetch("/api/signup", {
           method: "POST",
           body: JSON.stringify(trimedData),
           headers: {
@@ -100,6 +101,7 @@ function MainForm() {
       const { message, userInfo } = await response.json();
 
       // update user info in the store
+
       dispatch(
         setUser({
           user: {
@@ -111,25 +113,36 @@ function MainForm() {
         })
       );
 
-      // login success
+      // signup success
       setStatus("SUCCESS");
-      toast.success(message || "Login successful!");
+      toast.success(message || "Account created successfully!");
+
       requestFormReset();
 
       // redirect
-      if (!userInfo.isAccountEnabled) return router.push("/enable-account");
-
-      if (!userInfo.isVerified) return router.push("/verify-email");
-
-      router.push("/dashboard");
+      router.push("/verify-email");
     } catch (e) {
       setStatus("ERROR");
       toast.error("Something went wrong, please try again later.");
       console.log(e);
     }
   }
+
+  // prefetch verify email page to improve performance
+  useEffect(() => {
+    router.prefetch("/verify-email");
+  }, [router]);
+
   return (
     <form className="space-y-4" onSubmit={(e) => handleSubmit(e)}>
+      <InputField
+        label="Name"
+        type="text"
+        name="name"
+        placeholder="Jon Doe"
+        value={formData.name}
+        onChange={(e) => updateForm(e)}
+      />
       <InputField
         label="Email"
         type="email"
@@ -147,13 +160,21 @@ function MainForm() {
         className="pr-10"
         value={formData.password}
         onChange={(e) => updateForm(e)}
-        isFromLogin
       />
 
+      <InputField
+        label="Confirm Password"
+        type="password"
+        name="confirmPassword"
+        placeholder="Confirm your password"
+        className="pr-10"
+        value={formData.confirmPassword}
+        onChange={(e) => updateForm(e)}
+      />
       <SubmitBtn
-        text="Login"
-        className="mt-8"
-        isLoading={status === "LOADING"}
+        className="mt-7"
+        isLoading={status == "LOADING"}
+        text={status == "LOADING" ? "Loading..." : btnText || "Sign Up"}
       />
     </form>
   );

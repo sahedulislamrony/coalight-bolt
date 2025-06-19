@@ -2,7 +2,9 @@
 import { cn } from "@/lib/utils";
 
 import { FcGoogle } from "react-icons/fc";
-
+import { GraduationCap } from "lucide-react";
+import { UserCog } from "lucide-react";
+import { PiArrowRightThin } from "react-icons/pi";
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   size?: number;
 }
@@ -79,6 +81,9 @@ const Icons = {
     </svg>
   ),
   google: withDefaultProps(FcGoogle, "text-2xl"),
+  graduateCap: withDefaultProps(GraduationCap, "text-2xl"),
+  userCog: withDefaultProps(UserCog, "text-2xl"),
+  arrowRight: withDefaultProps(PiArrowRightThin, "text-2xl"),
 };
 
 export default Icons;
