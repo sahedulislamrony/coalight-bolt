@@ -1,11 +1,21 @@
-// import Navbar from "@/components/basic/Navbar";
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { AppSidebar } from '@/components/basic/AppSideBar2';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
-import { AppSidebar } from "@/components/basic/AppSideBar2";
-
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <AppSidebar>{children}</AppSidebar>
-    </div>
+    <ErrorBoundary>
+      <TooltipProvider>
+        <AppSidebar>
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </AppSidebar>
+      </TooltipProvider>
+    </ErrorBoundary>
   );
 }
