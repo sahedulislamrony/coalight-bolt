@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { ChangeEvent, useEffect, useState } from "react";
-import { formStatus, type signUpFormData } from "@/types/auth";
+import { ChangeEvent, useState } from "react";
+import { FormState, type SignUpCredentials } from "@/types/auth";
 import { toast } from "sonner";
 import { delay } from "@/lib/delay";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ import FooterTxt from "@/components/form/FooterTxt";
 import WithGoogleBtn from "@/components/form/WithGoogleBtn";
 import FormHeader from "@/components/form/FormHeader";
 import SubmitBtn from "../form/SubmitBtn";
+
 export default function SignupPage({ role }: { role?: "student" | "teacher" }) {
   return (
     <div className="mx-auto max-w-md  mt-28 min-h-screen px-4 md:px-0">
@@ -37,13 +38,14 @@ function MainForm({ role }: { role?: "student" | "teacher" }) {
     role === "teacher" ? "Sign up as Teacher" : "Sign up as Student";
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [formData, setFormData] = useState<signUpFormData>({
+
+  const [formData, setFormData] = useState<SignUpCredentials>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-  const [status, setStatus] = useState<formStatus>("IDLE");
+  const [status, setStatus] = useState<FormState>("IDLE");
 
   const updateForm = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => {
@@ -62,15 +64,6 @@ function MainForm({ role }: { role?: "student" | "teacher" }) {
       confirmPassword: "",
     });
     setStatus("IDLE");
-  };
-
-  const trimeData = (data: signUpFormData): signUpFormData => {
-    return {
-      name: data.name?.trim(),
-      email: data.email?.trim(),
-      password: data.password?.trim(),
-      confirmPassword: data.confirmPassword?.trim(),
-    };
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -98,40 +91,25 @@ function MainForm({ role }: { role?: "student" | "teacher" }) {
         return;
       }
 
-      const { message, userInfo } = await response.json();
+      const { message, user } = await response.json();
 
       // update user info in the store
-
-      dispatch(
-        setUser({
-          user: {
-            name: userInfo.name,
-            email: userInfo.email,
-          },
-          isAccountEnabled: userInfo.isAccountEnabled,
-          isVerified: userInfo.isVerified,
-        })
-      );
+      dispatch(setUser(user));
 
       // signup success
       setStatus("SUCCESS");
-      toast.success(message || "Account created successfully!");
+      toast.success(message);
 
       requestFormReset();
 
       // redirect
-      router.push("/verify-email");
+      router.push("/dashboard");
     } catch (e) {
       setStatus("ERROR");
       toast.error("Something went wrong, please try again later.");
       console.log(e);
     }
   }
-
-  // prefetch verify email page to improve performance
-  useEffect(() => {
-    router.prefetch("/verify-email");
-  }, [router]);
 
   return (
     <form className="space-y-4" onSubmit={(e) => handleSubmit(e)}>
@@ -179,3 +157,12 @@ function MainForm({ role }: { role?: "student" | "teacher" }) {
     </form>
   );
 }
+
+const trimeData = (data: SignUpCredentials): SignUpCredentials => {
+  return {
+    name: data.name?.trim(),
+    email: data.email?.trim(),
+    password: data.password?.trim(),
+    confirmPassword: data.confirmPassword?.trim(),
+  };
+};

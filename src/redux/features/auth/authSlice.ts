@@ -1,6 +1,5 @@
-import { deleteToken } from "@/lib/deleteToken";
+import { User } from "@/types";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-
 interface AuthState {
   isVerified: boolean;
   user: null | { name: string; email: string };
@@ -34,30 +33,15 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser: (
-      state,
-      action: PayloadAction<{
-        user: { name: string; email: string };
-        isAccountEnabled: boolean;
-        isVerified: boolean;
-      }>
-    ) => {
-      const { user, isAccountEnabled, isVerified } = action.payload;
+    setUser: (state, action: PayloadAction<User>) => {
+      const user = action.payload;
       state.user = user;
-      state.isAccountEnabled = isAccountEnabled;
-      state.isVerified = isVerified;
     },
     verifyUser: (state) => {
       state.isVerified = true;
     },
     logout: (state) => {
-      state.isVerified = false;
       state.user = null;
-      state.isAccountEnabled = false;
-      if (typeof window !== "undefined") {
-        deleteToken("token");
-        deleteToken("refreshToken");
-      }
     },
   },
 });

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import WithGoogleBtn from "@/components/form/WithGoogleBtn";
 
 import { ChangeEvent, useState } from "react";
-import { formStatus, loginFormData } from "@/types/auth";
+import { FormState, LoginCredentials } from "@/types/auth";
 import { toast } from "sonner";
 import { delay } from "@/lib/delay";
 import { useRouter } from "next/navigation";
@@ -42,11 +42,11 @@ export default function LoginPage() {
 function MainForm() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [formData, setFormData] = useState<loginFormData>({
+  const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
     password: "",
   });
-  const [status, setStatus] = useState<formStatus>("IDLE");
+  const [status, setStatus] = useState<FormState>("IDLE");
 
   const updateForm = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => {
@@ -63,13 +63,6 @@ function MainForm() {
       password: "",
     });
     setStatus("IDLE");
-  };
-
-  const trimeData = (data: loginFormData): loginFormData => {
-    return {
-      email: data.email?.trim(),
-      password: data.password?.trim(),
-    };
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -92,34 +85,20 @@ function MainForm() {
 
       if (!response.ok) {
         setStatus("ERROR");
-        const { message } = await response.json();
-        toast.error(message);
+        const { error } = await response.json();
+        toast.error(error.message);
         return;
       }
 
-      const { message, userInfo } = await response.json();
+      const { message, user } = await response.json();
 
       // update user info in the store
-      dispatch(
-        setUser({
-          user: {
-            name: userInfo.name,
-            email: userInfo.email,
-          },
-          isAccountEnabled: userInfo.isAccountEnabled,
-          isVerified: userInfo.isVerified,
-        })
-      );
+      dispatch(setUser(user));
 
       // login success
       setStatus("SUCCESS");
       toast.success(message || "Login successful!");
       requestFormReset();
-
-      // redirect
-      if (!userInfo.isAccountEnabled) return router.push("/enable-account");
-
-      if (!userInfo.isVerified) return router.push("/verify-email");
 
       router.push("/dashboard");
     } catch (e) {
@@ -158,3 +137,10 @@ function MainForm() {
     </form>
   );
 }
+
+const trimeData = (data: LoginCredentials): LoginCredentials => {
+  return {
+    email: data.email?.trim(),
+    password: data.password?.trim(),
+  };
+};

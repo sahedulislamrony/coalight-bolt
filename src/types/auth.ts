@@ -1,19 +1,24 @@
-// login form
-
-export type loginFormData = {
-  email: string;
-  password: string;
-};
-
-// signup form
-
-export type signUpFormData = {
+export interface SignUpCredentials {
   name: string;
   email: string;
   password: string;
   confirmPassword: string;
-};
+}
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
-// form status
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
-export type formStatus = "IDLE" | "LOADING" | "SUCCESS" | "ERROR";
+export interface AuthResponse {
+  isEmailVerified: boolean | null;
+  user: User | null;
+}
+
+export type FormState = "IDLE" | "LOADING" | "SUCCESS" | "ERROR";

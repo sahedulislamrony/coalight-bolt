@@ -1,44 +1,37 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { parseCookie } from "@/lib/parseCookie";
 
-export async function GET(req: Request) {
-  const refreshToken = (await cookies()).get("refreshToken")?.value;
+const expressApiUrl = process.env.EXPRESS_API_BASE_URL;
 
-  function getAbsoluteUrl(path: string) {
-    const host = req.headers.get("host");
-    const protocol = req.headers.get("x-forwarded-proto") || "http";
-    return `${protocol}://${host}${path}`;
-  }
+export async function GET(req: NextRequest) {
+  const redirectUrl = req.nextUrl.searchParams.get("redirect") || "/dashboard";
+  const refreshToken = req.cookies.get("refreshToken")?.value;
 
   if (!refreshToken) {
-    return NextResponse.redirect(getAbsoluteUrl("/login"));
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  try {
-    const response = await fetch(
-      `${process.env.SPRING_API_SERVER_URL}/auth/refresh`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-      }
-    );
+  const response = await fetch(`${expressApiUrl}/auth/refresh`, {
+    headers: {
+      Cookie: `refreshToken=${refreshToken}`,
+    },
+    credentials: "include",
+  });
 
-    if (!response.ok) throw new Error("Failed to refresh");
-
-    const { jwt } = await response.json();
-
-    const res = NextResponse.redirect(getAbsoluteUrl("/dashboard"));
-    res.cookies.set("token", jwt, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 3600,
-      path: "/",
+  if (response.ok) {
+    const nextResponse = NextResponse.redirect(new URL(redirectUrl, req.url));
+    const setCookies = response.headers.getSetCookie();
+    setCookies.forEach((cookie) => {
+      nextResponse.cookies.set(parseCookie(cookie));
     });
-
-    return res;
-  } catch {
-    return NextResponse.redirect(getAbsoluteUrl("/login"));
+    return nextResponse;
   }
+
+  // Refresh failed
+  const loginUrl = new URL("/login", req.url);
+  loginUrl.searchParams.set("redirect", redirectUrl);
+  const nextResponse = NextResponse.redirect(loginUrl);
+  nextResponse.cookies.delete("accessToken");
+  nextResponse.cookies.delete("refreshToken");
+  return nextResponse;
 }

@@ -1,5 +1,6 @@
 import Navbar from "@/components/basic/Navbar";
 import JoinUSWindow from "@/components/auth/JoinUSWindow";
+// import LandingPage from "@/components/LandingPage";
 
 export default function Home() {
   return (
@@ -9,6 +10,7 @@ export default function Home() {
       <main>
         <JoinUSWindow />
       </main>
+      {/* <LandingPage /> */}
     </>
   );
 }

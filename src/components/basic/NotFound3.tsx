@@ -239,14 +239,14 @@ export default function NotFoundPage() {
             </motion.div>
 
             <motion.h2
-              className="text-4xl font-medium mb-3"
+              className="text-4xl font-medium mb-5"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.7 }}
             >
-              <span className="text-gray-300 font-[700]">Error:</span>{" "}
+              {/* <span className="text-gray-300 font-[700]">Error:</span>{" "} */}
               <span className="text-sky-400 font-[700]">
-                Dimensional_Rift_Detected
+                HTTP_404_PORTAL_NOT_FOUND
               </span>
             </motion.h2>
 
@@ -256,11 +256,11 @@ export default function NotFoundPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.7 }}
             >
-              {">"}_ The requested URL could not be resolved.
+              {">"}_ The page you are looking for was not found.
               <br />
-              {">"}_ Possible causes: invalid coordinates,
+              {">"}_ Possible causes: broken link, mistyped URL,
               <br />
-              {">"}_ temporal displacement, or quantum fluctuation.
+              {">"}_ or the resource has been moved or deleted.
             </motion.p>
 
             <motion.div
@@ -278,9 +278,7 @@ export default function NotFoundPage() {
                   }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span className="relative z-10">
-                    Initiate Return Sequence
-                  </span>
+                  <span className="relative z-10">Return to Home</span>
                   <motion.span
                     className="relative z-10"
                     animate={{
@@ -319,7 +317,7 @@ export default function NotFoundPage() {
                 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className="relative z-10">Previous Dimension</span>
+                <span className="relative z-10">Previous Destination</span>
                 <motion.span
                   className="relative z-10"
                   animate={{

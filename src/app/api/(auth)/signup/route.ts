@@ -1,116 +1,72 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { SignUpCredentials } from "@/types";
 import { NextResponse } from "next/server";
-import { validateSignupData } from "@/lib/validateFormData";
-
-const API_SERVER = process.env.SPRING_API_SERVER_URL;
 
 export async function POST(request: Request) {
-  const formData = await request.json();
-  const { name, email, password, confirmPassword } = formData;
+  const expressUrl = `${process.env.EXPRESS_API_BASE_URL}/auth/register`;
 
-  // initial validation
-  const { isValid, message } = validateSignupData(
-    name,
-    email,
-    password,
-    confirmPassword
-  );
+  const body: SignUpCredentials = await request.json();
 
-  if (!isValid) {
+  const { name, email, password, confirmPassword } = body;
+
+  // Validate request body
+  if (!email || !password || !confirmPassword || !name) {
     return NextResponse.json(
-      {
-        success: false,
-        message,
-      },
+      { message: "All fields are required" },
       { status: 400 }
     );
   }
 
-  // authentication logic
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return NextResponse.json(
+      { message: "Invalid email format" },
+      { status: 400 }
+    );
+  }
+
+  if (password !== confirmPassword) {
+    return NextResponse.json(
+      { message: "Passwords do not match" },
+      { status: 400 }
+    );
+  }
+
+  if (password.length < 6) {
+    return NextResponse.json(
+      { message: "Password must be at least 6 characters long" },
+      { status: 400 }
+    );
+  }
 
   try {
-    // names
-    const [firstName, ...restName] = name.split(" ");
-    const lastName = restName.join(" ") || "";
-    const apiData = {
-      firstName,
-      lastName,
-      email,
-      password,
-    };
-    const response = await fetch(`${API_SERVER}/auth/signup`, {
-      body: JSON.stringify(apiData),
+    const response = await fetch(expressUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Cookie: request.headers.get("Cookie") || "",
       },
+      body: JSON.stringify(body),
+      credentials: "include",
     });
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage =
-        response.status == 409
-          ? "Email already exists"
-          : errorData?.message || "Failed to signup";
-      return NextResponse.json(
-        {
-          success: false,
-          message: errorMessage,
-        },
-        { status: response.status }
-      );
+
+    const data = await response.json();
+    const responseHeaders = new Headers();
+
+    // Forward set-cookie headers
+    const setCookie = response.headers.get("set-cookie");
+    if (setCookie) {
+      responseHeaders.set("set-cookie", setCookie);
     }
 
-    // successful signup
-    const { jwt: token, refreshToken, userInfo } = await response.json();
-    const {
-      firstName: userFirstName,
-      lastName: userLastName,
-      ...rest
-    } = userInfo;
-    const userInfoWithName = {
-      ...rest,
-      name: `${userFirstName} ${userLastName ?? ""}`.trim(),
-    };
-
-    const nextResponse = NextResponse.json(
-      {
-        success: true,
-        message: "Account created successfully!",
-        userInfo: userInfoWithName,
-      },
-      { status: 200 }
-    );
-
-    // set cookies
-    nextResponse.cookies.set({
-      name: "token",
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60, // 1 hour
+    return NextResponse.json(data, {
+      headers: responseHeaders,
+      status: response.status,
     });
-    nextResponse.cookies.set({
-      name: "refreshToken",
-      value: refreshToken,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    });
-
-    return nextResponse;
-  } catch (e) {
+  } catch (error) {
     return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to signup",
-        errorDetails: e instanceof Error ? e.message : e,
-      },
-      {
-        status: 400,
-      }
+      { error: "Internal Server Error" },
+      { status: 500 }
     );
   }
 }

@@ -11,14 +11,12 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
-import counterReducer from "./features/counter/counterSlice";
 import authReducer from "./features/auth/authSlice";
 
 const isDev = process.env.NODE_ENV !== "production";
 
 // Combine all slices
 const rootReducer = combineReducers({
-  counter: counterReducer,
   auth: authReducer,
 });
 
@@ -26,7 +24,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth", "counter"],
+  whitelist: ["auth"],
   version: 1, // Increment this version when you change the state structure
 };
 
